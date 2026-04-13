@@ -98,6 +98,10 @@ export class LectureRoomScene extends Phaser.Scene {
     this.input.keyboard!.addKey('ESC').on('down', () => {
       this.scene.start('CorridorScene');
     });
+
+    // Notify room visit
+    const onVisit = this.registry.get('onVisitRoom');
+    if (onVisit) onVisit('lecture');
   }
 
   private createNPC(x: number, y: number) {
