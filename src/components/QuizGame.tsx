@@ -12,7 +12,6 @@ export default function QuizGame({ onClose, onAchievement, achieved }: Props) {
     Object.fromEntries(quizCards.map(c => [c.id, null]))
   );
   const [checked, setChecked] = useState(false);
-  const [showAchievement, setShowAchievement] = useState(false);
 
   const allAnswered = quizCards.every(c => answers[c.id] !== null);
 
@@ -20,7 +19,6 @@ export default function QuizGame({ onClose, onAchievement, achieved }: Props) {
     setChecked(true);
     const allCorrect = quizCards.every(c => answers[c.id] === c.answer);
     if (allCorrect && !achieved) {
-      setTimeout(() => setShowAchievement(true), 600);
       onAchievement();
     }
   };
@@ -43,7 +41,7 @@ export default function QuizGame({ onClose, onAchievement, achieved }: Props) {
           {quizCards.map(card => {
             const isCorrect = checked && answers[card.id] === card.answer;
             const isWrong = checked && answers[card.id] !== card.answer;
-            
+
             return (
               <div
                 key={card.id}
@@ -98,20 +96,6 @@ export default function QuizGame({ onClose, onAchievement, achieved }: Props) {
             <span className="text-primary text-[8px]">✓ Все верно! Отличная работа!</span>
           )}
         </div>
-
-        {/* Achievement popup */}
-        {showAchievement && (
-          <div className="fixed inset-0 z-[60] flex items-center justify-center pixel-overlay" onClick={() => setShowAchievement(false)}>
-            <div className="pixel-card pixel-card-selected p-8 text-center animate-bounce" onClick={e => e.stopPropagation()}>
-              <div className="text-4xl mb-4">🏆</div>
-              <h3 className="text-primary text-sm mb-2">Достижение получено!</h3>
-              <p className="text-foreground text-[8px] mb-4">«А ты знаток в этом деле!»</p>
-              <button onClick={() => setShowAchievement(false)} className="pixel-btn text-[8px]">
-                Круто!
-              </button>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
