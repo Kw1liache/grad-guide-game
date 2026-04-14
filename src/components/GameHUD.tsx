@@ -8,18 +8,19 @@ interface Props {
 
 export default function GameHUD({ characterId, achievements }: Props) {
   const char = characters.find(c => c.id === characterId) || characters[0];
-  const color = char.color === 0x4488ff ? '#4488ff' : '#ff6688';
   const [showAchList, setShowAchList] = useState(false);
 
   const totalAch = Object.keys(achievementDefs).length;
   const earnedAch = (Object.keys(achievements) as AchievementKey[]).filter(k => achievements[k]).length;
 
+  const spriteUrl = char.id === 'char_b' ? '/sprites/girl_right.png' : '/sprites/boy_right.png';
+
   return (
     <div className="fixed inset-0 z-10 pointer-events-none" style={{ fontFamily: '"Press Start 2P", monospace' }}>
-      {/* Top Left - Character + Achievements */}
+      {/* Top Left */}
       <div className="absolute top-3 left-3 flex items-center gap-3 pointer-events-auto">
         <div className="pixel-card flex items-center gap-2 p-2">
-          <div className="w-4 h-4 rounded-sm" style={{ background: color }} />
+          <img src={spriteUrl} alt={char.name} className="w-5 h-6 object-contain" style={{ imageRendering: 'pixelated' }} />
           <span className="text-foreground text-[7px]">{char.name}</span>
         </div>
         <button
@@ -32,7 +33,6 @@ export default function GameHUD({ characterId, achievements }: Props) {
         </button>
       </div>
 
-      {/* Achievement list dropdown */}
       {showAchList && (
         <div className="absolute top-14 left-3 pointer-events-auto pixel-card p-3 w-64">
           <h3 className="text-foreground text-[8px] mb-2">Достижения</h3>
@@ -52,21 +52,20 @@ export default function GameHUD({ characterId, achievements }: Props) {
         </div>
       )}
 
-      {/* Top Right - Settings (inactive) */}
+      {/* Top Right - Settings hint */}
       <div className="absolute top-3 right-3">
-        <div className="pixel-card p-2 opacity-40">
-          <span className="text-muted-foreground text-[8px]">⚙️</span>
+        <div className="pixel-card p-2">
+          <span className="text-muted-foreground text-[7px]">ESC — настройки</span>
         </div>
       </div>
 
-      {/* Bottom Right - Controls hint */}
+      {/* Bottom Right */}
       <div className="absolute bottom-3 right-3">
         <div className="pixel-card p-2 text-[6px] text-muted-foreground leading-loose">
           <div>A/D — влево/вправо</div>
           <div>Space — прыжок</div>
           <div>E — взаимодействие</div>
-          <div>ESC — назад</div>
-          <div className="opacity-40">O — инвентарь</div>
+          <div>ESC — настройки</div>
         </div>
       </div>
     </div>

@@ -22,16 +22,12 @@ export default function CharacterSelect({ onSelect }: Props) {
               selected === c.id ? 'pixel-card-selected' : ''
             }`}
           >
-            {/* Pixel character preview */}
-            <div className="w-16 h-20 mb-4 relative">
-              <div className="absolute left-1/2 top-0 -translate-x-1/2 w-4 h-1" style={{ background: c.color === 0x4488ff ? '#4488ff' : '#ff6688' }} />
-              <div className="absolute left-1/2 top-1 -translate-x-1/2 w-3.5 h-3.5 bg-[#ffccaa]" />
-              <div className="absolute left-[calc(50%-4px)] top-[6px] w-[3px] h-[3px] bg-[#222]" />
-              <div className="absolute left-[calc(50%+2px)] top-[6px] w-[3px] h-[3px] bg-[#222]" />
-              <div className="absolute left-1/2 top-5 -translate-x-1/2 w-4 h-5" style={{ background: c.color === 0x4488ff ? '#4488ff' : '#ff6688' }} />
-              <div className="absolute left-[calc(50%-5px)] top-[42px] w-[6px] h-2" style={{ background: c.color === 0x4488ff ? '#2244aa' : '#aa3355' }} />
-              <div className="absolute left-[calc(50%+1px)] top-[42px] w-[6px] h-2" style={{ background: c.color === 0x4488ff ? '#2244aa' : '#aa3355' }} />
-            </div>
+            <img
+              src={c.id === 'char_b' ? '/sprites/girl_right.png' : '/sprites/boy_right.png'}
+              alt={c.name}
+              className="w-16 h-20 object-contain mb-4"
+              style={{ imageRendering: 'pixelated' }}
+            />
             <span className="text-foreground text-xs">{c.name}</span>
           </button>
         ))}
