@@ -8,6 +8,7 @@ import { DeanScene } from './scenes/DeanScene';
 
 interface PhaserGameProps {
   characterId: string;
+  uiOpen: boolean;
   onOpenDialog: () => void;
   onOpenQuiz: () => void;
   onTalkRadik: () => void;
@@ -15,11 +16,12 @@ interface PhaserGameProps {
   onUseExperiment: (index: number) => void;
   onReadNotice: (index: number) => void;
   onVisitRoom: (room: string) => void;
+  onOpenSettings: () => void;
 }
 
 export default function PhaserGame({
-  characterId, onOpenDialog, onOpenQuiz, onTalkRadik,
-  onReadBook, onUseExperiment, onReadNotice, onVisitRoom,
+  characterId, uiOpen, onOpenDialog, onOpenQuiz, onTalkRadik,
+  onReadBook, onUseExperiment, onReadNotice, onVisitRoom, onOpenSettings,
 }: PhaserGameProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const gameRef = useRef<Phaser.Game | null>(null);
@@ -47,6 +49,7 @@ export default function PhaserGame({
 
     const game = new Phaser.Game(config);
     game.registry.set('characterId', characterId);
+    game.registry.set('uiOpen', false);
     game.registry.set('onOpenDialog', onOpenDialog);
     game.registry.set('onOpenQuiz', onOpenQuiz);
     game.registry.set('onTalkRadik', onTalkRadik);
@@ -54,13 +57,30 @@ export default function PhaserGame({
     game.registry.set('onUseExperiment', onUseExperiment);
     game.registry.set('onReadNotice', onReadNotice);
     game.registry.set('onVisitRoom', onVisitRoom);
+    game.registry.set('onOpenSettings', onOpenSettings);
     gameRef.current = game;
 
     return () => {
       game.destroy(true);
       gameRef.current = null;
     };
-  }, [characterId, onOpenDialog, onOpenQuiz, onTalkRadik, onReadBook, onUseExperiment, onReadNotice, onVisitRoom]);
+  }, []);
+
+  // Update registry values when props change (without recreating game)
+  useEffect(() => {
+    if (gameRef.current) {
+      gameRef.current.registry.set('uiOpen', uiOpen);
+    }
+  }, [uiOpen]);
+
+  useEffect(() => {
+    if (gameRef.current) {
+      gameRef.current.registry.set('characterId', characterId);
+      // Restart current scene to update character sprite
+      const scene = gameRef.current.scene.getScenes(true)[0];
+      if (scene) scene.scene.restart();
+    }
+  }, [characterId]);
 
   return <div ref={containerRef} className="w-full h-full" />;
 }

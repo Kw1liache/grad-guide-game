@@ -9,8 +9,9 @@ import BookViewer from '../components/BookViewer';
 import ExperimentViewer from '../components/ExperimentViewer';
 import NoticeViewer from '../components/NoticeViewer';
 import AchievementPopup from '../components/AchievementPopup';
+import SettingsMenu from '../components/SettingsMenu';
 import PhaserGame from '../game/PhaserGame';
-import { loadGameState, saveGameState, type AchievementKey, libraryFacts, labExperiments } from '../game/data';
+import { loadGameState, saveGameState, defaultState, type AchievementKey, libraryFacts, labExperiments } from '../game/data';
 
 type Screen = 'character' | 'institute' | 'game';
 
@@ -28,8 +29,11 @@ export default function Index() {
   const [bookOpen, setBookOpen] = useState<number | null>(null);
   const [experimentOpen, setExperimentOpen] = useState<number | null>(null);
   const [noticeOpen, setNoticeOpen] = useState<number | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [achievementPopup, setAchievementPopup] = useState<AchievementKey | null>(null);
   const pendingAchievement = useRef<AchievementKey | null>(null);
+
+  const uiOpen = dialogOpen || quizOpen || radikOpen || bookOpen !== null || experimentOpen !== null || noticeOpen !== null || settingsOpen || achievementPopup !== null;
 
   useEffect(() => {
     saveGameState(gameState);
@@ -38,11 +42,9 @@ export default function Index() {
   const tryAchievement = useCallback((key: AchievementKey) => {
     setGameState(prev => {
       if (prev.achievements[key]) return prev;
-      // Show popup after state update
       pendingAchievement.current = key;
       return { ...prev, achievements: { ...prev.achievements, [key]: true } };
     });
-    // Use setTimeout to show popup after state update
     setTimeout(() => {
       if (pendingAchievement.current) {
         setAchievementPopup(pendingAchievement.current);
@@ -63,12 +65,22 @@ export default function Index() {
 
   const handleOpenDialog = useCallback(() => setDialogOpen(true), []);
   const handleOpenQuiz = useCallback(() => setQuizOpen(true), []);
+  const handleOpenSettings = useCallback(() => setSettingsOpen(true), []);
+
+  const handleChangeCharacter = useCallback((id: string) => {
+    setGameState(s => ({ ...s, selectedCharacter: id }));
+  }, []);
+
+  const handleResetProgress = useCallback(() => {
+    setGameState({ ...defaultState });
+    setSettingsOpen(false);
+    setScreen('character');
+  }, []);
 
   const handleTalkRadik = useCallback(() => {
     setGameState(prev => {
       const newCount = prev.radikTalks + 1;
       const newState = { ...prev, radikTalks: newCount };
-      // Check radik_friend achievement
       if (newCount >= 3 && !prev.achievements.radik_friend) {
         pendingAchievement.current = 'radik_friend';
         newState.achievements = { ...newState.achievements, radik_friend: true };
@@ -88,7 +100,6 @@ export default function Index() {
     setGameState(prev => {
       const newBooks = prev.booksRead.includes(index) ? prev.booksRead : [...prev.booksRead, index];
       const newState = { ...prev, booksRead: newBooks };
-      // Check bookworm achievement
       if (newBooks.length >= libraryFacts.length && !prev.achievements.bookworm) {
         pendingAchievement.current = 'bookworm';
         newState.achievements = { ...newState.achievements, bookworm: true };
@@ -131,7 +142,6 @@ export default function Index() {
     setGameState(prev => {
       const newVisited = prev.visitedRooms.includes(room) ? prev.visitedRooms : [...prev.visitedRooms, room];
       const newState = { ...prev, visitedRooms: newVisited };
-      // All 5 rooms: corridor, library, lecture, lab, dean
       if (newVisited.length >= 5 && !prev.achievements.explorer) {
         pendingAchievement.current = 'explorer';
         newState.achievements = { ...newState.achievements, explorer: true };
@@ -162,6 +172,7 @@ export default function Index() {
     <div className="w-screen h-screen bg-background overflow-hidden relative">
       <PhaserGame
         characterId={gameState.selectedCharacter!}
+        uiOpen={uiOpen}
         onOpenDialog={handleOpenDialog}
         onOpenQuiz={handleOpenQuiz}
         onTalkRadik={handleTalkRadik}
@@ -169,6 +180,7 @@ export default function Index() {
         onUseExperiment={handleUseExperiment}
         onReadNotice={handleReadNotice}
         onVisitRoom={handleVisitRoom}
+        onOpenSettings={handleOpenSettings}
       />
       <GameHUD
         characterId={gameState.selectedCharacter!}
@@ -196,6 +208,14 @@ export default function Index() {
       )}
       {noticeOpen !== null && (
         <NoticeViewer noticeIndex={noticeOpen} onClose={() => setNoticeOpen(null)} />
+      )}
+      {settingsOpen && (
+        <SettingsMenu
+          onClose={() => setSettingsOpen(false)}
+          currentCharacter={gameState.selectedCharacter!}
+          onChangeCharacter={handleChangeCharacter}
+          onResetProgress={handleResetProgress}
+        />
       )}
       {achievementPopup && (
         <AchievementPopup
