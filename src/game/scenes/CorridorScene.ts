@@ -26,9 +26,10 @@ interface FloorConfig {
   hasRadik: boolean;
 }
 
-const WORLD_WIDTH = 2400;
+const WORLD_WIDTH = 1400;
 const WORLD_HEIGHT = 540;
 const VIEW_W = 960;
+const RADIK_X = 700;
 
 const FLOORS: Record<number, FloorConfig> = {
   1: {
@@ -38,10 +39,10 @@ const FLOORS: Record<number, FloorConfig> = {
     floorColor: 0x2a2e3e,
     ceilColor: 0x252838,
     doors: [
-      { x: 600, label: 'Лекционная', scene: 'LectureRoomScene', emoji: '🎓', color: 0x4a6a3a, promptLabel: 'лекционную' },
+      { x: 400, label: 'Лекционная', scene: 'LectureRoomScene', emoji: '🎓', color: 0x4a6a3a, promptLabel: 'лекционную' },
     ],
     stairs: [
-      { x: 2200, targetFloor: 2, direction: 'up' },
+      { x: 1280, targetFloor: 2, direction: 'up' },
     ],
     hasRadik: true,
   },
@@ -52,12 +53,12 @@ const FLOORS: Record<number, FloorConfig> = {
     floorColor: 0x2e2a3e,
     ceilColor: 0x282538,
     doors: [
-      { x: 500, label: 'Библиотека', scene: 'LibraryScene', emoji: '📚', color: 0x5a4a3a, promptLabel: 'библиотеку' },
-      { x: 1500, label: 'Лаборатория', scene: 'LabScene', emoji: '🔬', color: 0x3a4a6a, promptLabel: 'лабораторию' },
+      { x: 400, label: 'Библиотека', scene: 'LibraryScene', emoji: '📚', color: 0x5a4a3a, promptLabel: 'библиотеку' },
+      { x: 850, label: 'Лаборатория', scene: 'LabScene', emoji: '🔬', color: 0x3a4a6a, promptLabel: 'лабораторию' },
     ],
     stairs: [
-      { x: 200, targetFloor: 1, direction: 'down' },
-      { x: 2200, targetFloor: 3, direction: 'up' },
+      { x: 120, targetFloor: 1, direction: 'down' },
+      { x: 1280, targetFloor: 3, direction: 'up' },
     ],
     hasRadik: false,
   },
@@ -68,10 +69,10 @@ const FLOORS: Record<number, FloorConfig> = {
     floorColor: 0x3e2e2a,
     ceilColor: 0x382528,
     doors: [
-      { x: 1000, label: 'Деканат', scene: 'DeanScene', emoji: '🏛️', color: 0x4a3a5a, promptLabel: 'деканат' },
+      { x: 700, label: 'Деканат', scene: 'DeanScene', emoji: '🏛️', color: 0x4a3a5a, promptLabel: 'деканат' },
     ],
     stairs: [
-      { x: 200, targetFloor: 2, direction: 'down' },
+      { x: 120, targetFloor: 2, direction: 'down' },
     ],
     hasRadik: false,
   },
