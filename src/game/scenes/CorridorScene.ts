@@ -354,10 +354,17 @@ export class CorridorScene extends Phaser.Scene {
     if (this.transitioning) return;
     this.transitioning = true;
     this.playerBody.setVelocity(0, 0);
-    // Spawn at the opposite stair on the next floor
+    // On the next floor, find the stair that goes back the opposite way — spawn next to it.
     const targetCfg = FLOORS[targetFloor];
-    const oppositeStair = targetCfg.stairs.find(s => s.direction !== direction);
-    const spawnX = oppositeStair ? oppositeStair.x + (oppositeStair.direction === 'down' ? 80 : -80) : 100;
+    const oppositeDir = direction === 'up' ? 'down' : 'up';
+    const returnStair = targetCfg.stairs.find(s => s.direction === oppositeDir);
+    // Offset slightly away from the stair toward the corridor interior
+    let spawnX = 100;
+    if (returnStair) {
+      const worldMid = WORLD_WIDTH / 2;
+      const inward = returnStair.x < worldMid ? 70 : -70;
+      spawnX = returnStair.x + inward;
+    }
 
     this.cameras.main.fadeOut(350, 0, 0, 0);
     this.cameras.main.once('camerafadeoutcomplete', () => {
