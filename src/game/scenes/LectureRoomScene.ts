@@ -9,19 +9,30 @@ export class LectureRoomScene extends Phaser.Scene {
   private promptText!: Phaser.GameObjects.Text;
   private facingLeft = false;
   private charId!: string;
+  private returnFloor = 1;
+  private returnX = 600;
 
   constructor() {
     super({ key: 'LectureRoomScene' });
   }
 
+  init(data: { returnFloor?: number; returnX?: number }) {
+    this.returnFloor = data?.returnFloor ?? 1;
+    this.returnX = data?.returnX ?? 600;
+  }
+
   preload() {
     this.charId = this.registry.get('characterId') || 'char_a';
-    if (this.charId === 'char_b') {
-      this.load.image('player_left', '/sprites/girl_left.png');
-      this.load.image('player_right', '/sprites/girl_right.png');
-    } else {
-      this.load.image('player_left', '/sprites/boy_left.png');
-      this.load.image('player_right', '/sprites/boy_right.png');
+    const leftKey = `player_left_${this.charId}`;
+    const rightKey = `player_right_${this.charId}`;
+    if (!this.textures.exists(leftKey)) {
+      if (this.charId === 'char_b') {
+        this.load.image(leftKey, '/sprites/girl_left.png');
+        this.load.image(rightKey, '/sprites/girl_right.png');
+      } else {
+        this.load.image(leftKey, '/sprites/boy_left.png');
+        this.load.image(rightKey, '/sprites/boy_right.png');
+      }
     }
   }
 
@@ -65,7 +76,7 @@ export class LectureRoomScene extends Phaser.Scene {
     this.add.text(50, h - 170, 'Выход', { fontSize: '7px', fontFamily: '"Press Start 2P"', color: '#aa8866' }).setOrigin(0.5);
 
     // Player
-    this.player = this.add.image(100, h - 100, 'player_right');
+    this.player = this.add.image(100, h - 100, `player_right_${this.charId}`);
     this.player.setScale(0.08);
     this.player.setDepth(5);
     this.physics.add.existing(this.player);
@@ -128,10 +139,10 @@ export class LectureRoomScene extends Phaser.Scene {
 
     if (this.keys.a.isDown) {
       body.setVelocityX(-speed);
-      if (!this.facingLeft) { this.player.setTexture('player_left'); this.facingLeft = true; }
+      if (!this.facingLeft) { this.player.setTexture(`player_left_${this.charId}`); this.facingLeft = true; }
     } else if (this.keys.d.isDown) {
       body.setVelocityX(speed);
-      if (this.facingLeft) { this.player.setTexture('player_right'); this.facingLeft = false; }
+      if (this.facingLeft) { this.player.setTexture(`player_right_${this.charId}`); this.facingLeft = false; }
     } else {
       body.setVelocityX(0);
     }
@@ -175,7 +186,7 @@ export class LectureRoomScene extends Phaser.Scene {
         const cb = this.registry.get('onOpenQuiz');
         if (cb) cb();
       } else if (nearDoor) {
-        this.scene.start('CorridorScene');
+        this.scene.start('CorridorScene', { floor: this.returnFloor, spawnX: this.returnX });
       }
     }
   }

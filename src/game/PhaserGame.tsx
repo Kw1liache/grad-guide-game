@@ -76,9 +76,27 @@ export default function PhaserGame({
   useEffect(() => {
     if (gameRef.current) {
       gameRef.current.registry.set('characterId', characterId);
-      // Restart current scene to update character sprite
-      const scene = gameRef.current.scene.getScenes(true)[0];
-      if (scene) scene.scene.restart();
+      // Restart current scene to load+apply new character sprite
+      const activeScenes = gameRef.current.scene.getScenes(true);
+      activeScenes.forEach(scene => {
+        // Pass current scene init data so floor/spawn is preserved
+        const sceneKey = scene.scene.key;
+        if (sceneKey === 'CorridorScene') {
+          // @ts-ignore — read private state if present
+          const floor = (scene as any).currentFloor ?? 1;
+          // @ts-ignore
+          const sx = (scene as any).player?.x ?? 100;
+          scene.scene.restart({ floor, spawnX: sx });
+        } else {
+          // @ts-ignore
+          const rf = (scene as any).returnFloor;
+          // @ts-ignore
+          const rx = (scene as any).returnX;
+          // @ts-ignore
+          const px = (scene as any).player?.x ?? 100;
+          scene.scene.restart({ returnFloor: rf, returnX: rx, spawnX: px });
+        }
+      });
     }
   }, [characterId]);
 
