@@ -26,9 +26,10 @@ interface FloorConfig {
   hasRadik: boolean;
 }
 
-const WORLD_WIDTH = 2400;
+const WORLD_WIDTH = 1400;
 const WORLD_HEIGHT = 540;
 const VIEW_W = 960;
+const RADIK_X = 700;
 
 const FLOORS: Record<number, FloorConfig> = {
   1: {
@@ -38,10 +39,10 @@ const FLOORS: Record<number, FloorConfig> = {
     floorColor: 0x2a2e3e,
     ceilColor: 0x252838,
     doors: [
-      { x: 600, label: 'Лекционная', scene: 'LectureRoomScene', emoji: '🎓', color: 0x4a6a3a, promptLabel: 'лекционную' },
+      { x: 400, label: 'Лекционная', scene: 'LectureRoomScene', emoji: '🎓', color: 0x4a6a3a, promptLabel: 'лекционную' },
     ],
     stairs: [
-      { x: 2200, targetFloor: 2, direction: 'up' },
+      { x: 1280, targetFloor: 2, direction: 'up' },
     ],
     hasRadik: true,
   },
@@ -52,12 +53,12 @@ const FLOORS: Record<number, FloorConfig> = {
     floorColor: 0x2e2a3e,
     ceilColor: 0x282538,
     doors: [
-      { x: 500, label: 'Библиотека', scene: 'LibraryScene', emoji: '📚', color: 0x5a4a3a, promptLabel: 'библиотеку' },
-      { x: 1500, label: 'Лаборатория', scene: 'LabScene', emoji: '🔬', color: 0x3a4a6a, promptLabel: 'лабораторию' },
+      { x: 400, label: 'Библиотека', scene: 'LibraryScene', emoji: '📚', color: 0x5a4a3a, promptLabel: 'библиотеку' },
+      { x: 850, label: 'Лаборатория', scene: 'LabScene', emoji: '🔬', color: 0x3a4a6a, promptLabel: 'лабораторию' },
     ],
     stairs: [
-      { x: 200, targetFloor: 1, direction: 'down' },
-      { x: 2200, targetFloor: 3, direction: 'up' },
+      { x: 120, targetFloor: 1, direction: 'down' },
+      { x: 1280, targetFloor: 3, direction: 'up' },
     ],
     hasRadik: false,
   },
@@ -68,10 +69,10 @@ const FLOORS: Record<number, FloorConfig> = {
     floorColor: 0x3e2e2a,
     ceilColor: 0x382528,
     doors: [
-      { x: 1000, label: 'Деканат', scene: 'DeanScene', emoji: '🏛️', color: 0x4a3a5a, promptLabel: 'деканат' },
+      { x: 700, label: 'Деканат', scene: 'DeanScene', emoji: '🏛️', color: 0x4a3a5a, promptLabel: 'деканат' },
     ],
     stairs: [
-      { x: 200, targetFloor: 2, direction: 'down' },
+      { x: 120, targetFloor: 2, direction: 'down' },
     ],
     hasRadik: false,
   },
@@ -185,13 +186,13 @@ export class CorridorScene extends Phaser.Scene {
 
     // Radik on floor 1
     if (cfg.hasRadik) {
-      this.radikContainer = this.createRadik(1100, h - 88);
+      this.radikContainer = this.createRadik(RADIK_X, h - 88);
     }
 
     // Player
     const rightKey = `player_right_${this.charId}`;
     this.player = this.add.image(this.spawnX, h - 100, rightKey);
-    this.player.setScale(0.08);
+    this.player.setScale(0.13);
     this.player.setDepth(5);
     this.physics.add.existing(this.player);
 
@@ -204,9 +205,10 @@ export class CorridorScene extends Phaser.Scene {
     this.playerBody.setCollideWorldBounds(true);
     this.physics.add.collider(this.player, ground);
 
-    // Camera follow
+    // Camera follow + zoom in for bigger view
     this.cameras.main.startFollow(this.player, true, 0.12, 0.12);
     this.cameras.main.setDeadzone(120, 60);
+    this.cameras.main.setZoom(1.4);
 
     // Input
     this.keys = {
@@ -241,36 +243,57 @@ export class CorridorScene extends Phaser.Scene {
   }
 
   private createStair(x: number, h: number, direction: 'up' | 'down', _targetFloor: number) {
-    // Stair landing
-    this.add.rectangle(x, h - 70, 110, 20, 0x554433);
+    // Floor span: from floor (h-60) up to ceiling (~y=80)
+    const floorTop = h - 60;       // top surface of floor
+    const ceilBottom = 80;          // bottom of ceiling
+    const stairHeight = floorTop - ceilBottom; // ~400
+    const stepCount = 14;
+    const stepH = stairHeight / stepCount;
+    const stairWidth = 90;
 
-    // Stair steps (visual)
-    const stepCount = 8;
+    // Backing wall behind stair (visual depth)
+    this.add.rectangle(x, ceilBottom + stairHeight / 2, stairWidth + 16, stairHeight, 0x1a1520).setAlpha(0.6);
+
+    // Side stringer (diagonal support)
+    const stringerColor = 0x3a2a1a;
     for (let i = 0; i < stepCount; i++) {
-      const sx = direction === 'up' ? x - 40 + i * 12 : x + 40 - i * 12;
-      const sy = h - 80 - i * 14;
-      this.add.rectangle(sx, sy, 24, 6, 0x6a5a4a);
-      this.add.rectangle(sx, sy + 3, 24, 2, 0x4a3a2a);
+      const sy = floorTop - (i + 0.5) * stepH;
+      const offset = direction === 'up'
+        ? -stairWidth / 2 + (i / stepCount) * stairWidth
+        :  stairWidth / 2 - (i / stepCount) * stairWidth;
+      // step tread
+      this.add.rectangle(x + offset, sy, stairWidth * 0.6, stepH * 0.55, 0x6a5a4a);
+      // step riser (darker)
+      this.add.rectangle(x + offset, sy + stepH * 0.3, stairWidth * 0.6, stepH * 0.3, 0x4a3a2a);
+      // small stringer dot
+      this.add.rectangle(x + offset, sy + stepH * 0.5, 3, 3, stringerColor);
     }
 
-    // Railing
-    const railColor = 0x99aabb;
-    for (let i = 0; i <= stepCount; i++) {
-      const sx = direction === 'up' ? x - 40 + i * 12 : x + 40 - i * 12;
-      const sy = h - 80 - i * 14;
-      this.add.rectangle(sx, sy - 16, 2, 20, railColor);
-    }
-    // Handrail line
+    // Top landing (at ceiling level)
+    this.add.rectangle(x, ceilBottom + 6, stairWidth + 20, 8, 0x554433);
+    // Bottom landing (at floor level)
+    this.add.rectangle(x, floorTop - 4, stairWidth + 20, 8, 0x554433);
+
+    // Continuous handrail running diagonally full height
     const handColor = 0xccddee;
-    if (direction === 'up') {
-      this.add.line(0, 0, x - 40, h - 96, x + 56, h - 96 - stepCount * 14, handColor).setOrigin(0, 0).setLineWidth(2);
-    } else {
-      this.add.line(0, 0, x + 40, h - 96, x - 56, h - 96 - stepCount * 14, handColor).setOrigin(0, 0).setLineWidth(2);
+    const x1 = direction === 'up' ? x - stairWidth / 2 : x + stairWidth / 2;
+    const x2 = direction === 'up' ? x + stairWidth / 2 : x - stairWidth / 2;
+    this.add.line(0, 0, x1, floorTop - 18, x2, ceilBottom + 18, handColor)
+      .setOrigin(0, 0).setLineWidth(3);
+
+    // Vertical balusters
+    for (let i = 0; i <= stepCount; i += 2) {
+      const t = i / stepCount;
+      const bx = direction === 'up'
+        ? x - stairWidth / 2 + t * stairWidth
+        : x + stairWidth / 2 - t * stairWidth;
+      const by = floorTop - t * stairHeight;
+      this.add.rectangle(bx, by - 12, 2, 24, 0x99aabb);
     }
 
     // Floor sign on stair
     const sign = direction === 'up' ? '⬆ Наверх' : '⬇ Вниз';
-    this.add.text(x, h - 200, sign, {
+    this.add.text(x, ceilBottom - 8, sign, {
       fontSize: '8px', fontFamily: '"Press Start 2P"', color: '#aaccff',
       backgroundColor: '#00000099', padding: { x: 6, y: 4 },
     }).setOrigin(0.5);
@@ -331,10 +354,17 @@ export class CorridorScene extends Phaser.Scene {
     if (this.transitioning) return;
     this.transitioning = true;
     this.playerBody.setVelocity(0, 0);
-    // Spawn at the opposite stair on the next floor
+    // On the next floor, find the stair that goes back the opposite way — spawn next to it.
     const targetCfg = FLOORS[targetFloor];
-    const oppositeStair = targetCfg.stairs.find(s => s.direction !== direction);
-    const spawnX = oppositeStair ? oppositeStair.x + (oppositeStair.direction === 'down' ? 80 : -80) : 100;
+    const oppositeDir = direction === 'up' ? 'down' : 'up';
+    const returnStair = targetCfg.stairs.find(s => s.direction === oppositeDir);
+    // Offset slightly away from the stair toward the corridor interior
+    let spawnX = 100;
+    if (returnStair) {
+      const worldMid = WORLD_WIDTH / 2;
+      const inward = returnStair.x < worldMid ? 70 : -70;
+      spawnX = returnStair.x + inward;
+    }
 
     this.cameras.main.fadeOut(350, 0, 0, 0);
     this.cameras.main.once('camerafadeoutcomplete', () => {
@@ -419,7 +449,7 @@ export class CorridorScene extends Phaser.Scene {
     }
 
     // Radik
-    if (!this.nearDoor && !this.nearStair && cfg.hasRadik && Math.abs(px - 1100) < 50) {
+    if (!this.nearDoor && !this.nearStair && cfg.hasRadik && Math.abs(px - RADIK_X) < 50) {
       this.nearRadik = true;
       this.promptText.setText('[E] Поговорить с Радиком');
       this.promptText.setVisible(true);
