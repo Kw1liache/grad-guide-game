@@ -186,13 +186,13 @@ export class CorridorScene extends Phaser.Scene {
 
     // Radik on floor 1
     if (cfg.hasRadik) {
-      this.radikContainer = this.createRadik(1100, h - 88);
+      this.radikContainer = this.createRadik(RADIK_X, h - 88);
     }
 
     // Player
     const rightKey = `player_right_${this.charId}`;
     this.player = this.add.image(this.spawnX, h - 100, rightKey);
-    this.player.setScale(0.08);
+    this.player.setScale(0.13);
     this.player.setDepth(5);
     this.physics.add.existing(this.player);
 
@@ -205,9 +205,10 @@ export class CorridorScene extends Phaser.Scene {
     this.playerBody.setCollideWorldBounds(true);
     this.physics.add.collider(this.player, ground);
 
-    // Camera follow
+    // Camera follow + zoom in for bigger view
     this.cameras.main.startFollow(this.player, true, 0.12, 0.12);
     this.cameras.main.setDeadzone(120, 60);
+    this.cameras.main.setZoom(1.4);
 
     // Input
     this.keys = {
