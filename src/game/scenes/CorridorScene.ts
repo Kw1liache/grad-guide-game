@@ -449,7 +449,7 @@ export class CorridorScene extends Phaser.Scene {
     }
 
     // Radik
-    if (!this.nearDoor && !this.nearStair && cfg.hasRadik && Math.abs(px - 1100) < 50) {
+    if (!this.nearDoor && !this.nearStair && cfg.hasRadik && Math.abs(px - RADIK_X) < 50) {
       this.nearRadik = true;
       this.promptText.setText('[E] Поговорить с Радиком');
       this.promptText.setVisible(true);
