@@ -62,8 +62,9 @@ export default function GameHUD({ characterId, achievements }: Props) {
       {/* Bottom Right */}
       <div className="absolute bottom-3 right-3">
         <div className="pixel-card p-2 text-[6px] text-muted-foreground leading-loose">
-          <div>A/D — влево/вправо</div>
+          <div>A/D или ←/→ — влево/вправо</div>
           <div>Space — прыжок</div>
+          <div>W или ↑ — подняться по лестнице</div>
           <div>E — взаимодействие</div>
           <div>ESC — настройки</div>
         </div>
