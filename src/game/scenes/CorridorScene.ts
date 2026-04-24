@@ -243,36 +243,57 @@ export class CorridorScene extends Phaser.Scene {
   }
 
   private createStair(x: number, h: number, direction: 'up' | 'down', _targetFloor: number) {
-    // Stair landing
-    this.add.rectangle(x, h - 70, 110, 20, 0x554433);
+    // Floor span: from floor (h-60) up to ceiling (~y=80)
+    const floorTop = h - 60;       // top surface of floor
+    const ceilBottom = 80;          // bottom of ceiling
+    const stairHeight = floorTop - ceilBottom; // ~400
+    const stepCount = 14;
+    const stepH = stairHeight / stepCount;
+    const stairWidth = 90;
 
-    // Stair steps (visual)
-    const stepCount = 8;
+    // Backing wall behind stair (visual depth)
+    this.add.rectangle(x, ceilBottom + stairHeight / 2, stairWidth + 16, stairHeight, 0x1a1520).setAlpha(0.6);
+
+    // Side stringer (diagonal support)
+    const stringerColor = 0x3a2a1a;
     for (let i = 0; i < stepCount; i++) {
-      const sx = direction === 'up' ? x - 40 + i * 12 : x + 40 - i * 12;
-      const sy = h - 80 - i * 14;
-      this.add.rectangle(sx, sy, 24, 6, 0x6a5a4a);
-      this.add.rectangle(sx, sy + 3, 24, 2, 0x4a3a2a);
+      const sy = floorTop - (i + 0.5) * stepH;
+      const offset = direction === 'up'
+        ? -stairWidth / 2 + (i / stepCount) * stairWidth
+        :  stairWidth / 2 - (i / stepCount) * stairWidth;
+      // step tread
+      this.add.rectangle(x + offset, sy, stairWidth * 0.6, stepH * 0.55, 0x6a5a4a);
+      // step riser (darker)
+      this.add.rectangle(x + offset, sy + stepH * 0.3, stairWidth * 0.6, stepH * 0.3, 0x4a3a2a);
+      // small stringer dot
+      this.add.rectangle(x + offset, sy + stepH * 0.5, 3, 3, stringerColor);
     }
 
-    // Railing
-    const railColor = 0x99aabb;
-    for (let i = 0; i <= stepCount; i++) {
-      const sx = direction === 'up' ? x - 40 + i * 12 : x + 40 - i * 12;
-      const sy = h - 80 - i * 14;
-      this.add.rectangle(sx, sy - 16, 2, 20, railColor);
-    }
-    // Handrail line
+    // Top landing (at ceiling level)
+    this.add.rectangle(x, ceilBottom + 6, stairWidth + 20, 8, 0x554433);
+    // Bottom landing (at floor level)
+    this.add.rectangle(x, floorTop - 4, stairWidth + 20, 8, 0x554433);
+
+    // Continuous handrail running diagonally full height
     const handColor = 0xccddee;
-    if (direction === 'up') {
-      this.add.line(0, 0, x - 40, h - 96, x + 56, h - 96 - stepCount * 14, handColor).setOrigin(0, 0).setLineWidth(2);
-    } else {
-      this.add.line(0, 0, x + 40, h - 96, x - 56, h - 96 - stepCount * 14, handColor).setOrigin(0, 0).setLineWidth(2);
+    const x1 = direction === 'up' ? x - stairWidth / 2 : x + stairWidth / 2;
+    const x2 = direction === 'up' ? x + stairWidth / 2 : x - stairWidth / 2;
+    this.add.line(0, 0, x1, floorTop - 18, x2, ceilBottom + 18, handColor)
+      .setOrigin(0, 0).setLineWidth(3);
+
+    // Vertical balusters
+    for (let i = 0; i <= stepCount; i += 2) {
+      const t = i / stepCount;
+      const bx = direction === 'up'
+        ? x - stairWidth / 2 + t * stairWidth
+        : x + stairWidth / 2 - t * stairWidth;
+      const by = floorTop - t * stairHeight;
+      this.add.rectangle(bx, by - 12, 2, 24, 0x99aabb);
     }
 
     // Floor sign on stair
     const sign = direction === 'up' ? '⬆ Наверх' : '⬇ Вниз';
-    this.add.text(x, h - 200, sign, {
+    this.add.text(x, ceilBottom - 8, sign, {
       fontSize: '8px', fontFamily: '"Press Start 2P"', color: '#aaccff',
       backgroundColor: '#00000099', padding: { x: 6, y: 4 },
     }).setOrigin(0.5);
