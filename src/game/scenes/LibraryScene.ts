@@ -8,19 +8,31 @@ export class LibraryScene extends Phaser.Scene {
   private facingLeft = false;
   private nearBookshelf = -1;
   private nearDoor = false;
+  private charId!: string;
+  private returnFloor = 2;
+  private returnX = 500;
 
   constructor() {
     super({ key: 'LibraryScene' });
   }
 
+  init(data: { returnFloor?: number; returnX?: number }) {
+    this.returnFloor = data?.returnFloor ?? 2;
+    this.returnX = data?.returnX ?? 500;
+  }
+
   preload() {
-    const charId = this.registry.get('characterId') || 'char_a';
-    if (charId === 'char_b') {
-      this.load.image('player_left', '/sprites/girl_left.png');
-      this.load.image('player_right', '/sprites/girl_right.png');
-    } else {
-      this.load.image('player_left', '/sprites/boy_left.png');
-      this.load.image('player_right', '/sprites/boy_right.png');
+    this.charId = this.registry.get('characterId') || 'char_a';
+    const leftKey = `player_left_${this.charId}`;
+    const rightKey = `player_right_${this.charId}`;
+    if (!this.textures.exists(leftKey)) {
+      if (this.charId === 'char_b') {
+        this.load.image(leftKey, '/sprites/girl_left.png');
+        this.load.image(rightKey, '/sprites/girl_right.png');
+      } else {
+        this.load.image(leftKey, '/sprites/boy_left.png');
+        this.load.image(rightKey, '/sprites/boy_right.png');
+      }
     }
   }
 
@@ -89,7 +101,7 @@ export class LibraryScene extends Phaser.Scene {
 
     this.add.text(w / 2, 75, '📚 Библиотека', { fontSize: '10px', fontFamily: '"Press Start 2P"', color: '#ccaa66' }).setOrigin(0.5);
 
-    this.player = this.add.image(100, h - 100, 'player_right');
+    this.player = this.add.image(100, h - 100, `player_right_${this.charId}`);
     this.player.setScale(0.08);
     this.player.setDepth(5);
     this.physics.add.existing(this.player);
@@ -128,10 +140,10 @@ export class LibraryScene extends Phaser.Scene {
     const speed = 200;
     if (this.keys.a.isDown) {
       body.setVelocityX(-speed);
-      if (!this.facingLeft) { this.player.setTexture('player_left'); this.facingLeft = true; }
+      if (!this.facingLeft) { this.player.setTexture(`player_left_${this.charId}`); this.facingLeft = true; }
     } else if (this.keys.d.isDown) {
       body.setVelocityX(speed);
-      if (this.facingLeft) { this.player.setTexture('player_right'); this.facingLeft = false; }
+      if (this.facingLeft) { this.player.setTexture(`player_right_${this.charId}`); this.facingLeft = false; }
     } else {
       body.setVelocityX(0);
     }
@@ -171,7 +183,7 @@ export class LibraryScene extends Phaser.Scene {
         const cb = this.registry.get('onReadBook');
         if (cb) cb(this.nearBookshelf);
       } else if (this.nearDoor) {
-        this.scene.start('CorridorScene');
+        this.scene.start('CorridorScene', { floor: this.returnFloor, spawnX: this.returnX });
       }
     }
   }
